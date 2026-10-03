@@ -1,14 +1,65 @@
-"""Kleine Fun-Fact-API ohne zusätzliche Python-Pakete."""
+"""Kleine Fun-Fact Website"""
 
 import json
 import random
+from datetime import date, datetime, timezone
+from html import escape
+from pathlib import Path
 
 
-FACTS = (
-    {"id": 1, "text": "Ein Oktopus hat drei Herzen."},
-    {"id": 2, "text": "Die Venus braucht für eine Drehung um ihre Achse länger als für einen Umlauf um die Sonne."},
-    {"id": 3, "text": "Ein Würfel hat sechs Flächen, zwölf Kanten und acht Ecken."},
+FACTS = tuple(
+    {"id": index, "text": text}
+    for index, text in enumerate(
+        json.loads(Path(__file__).with_name("facts.json").read_text(encoding="utf-8")),
+        start=1,
+    )
 )
+
+
+def fact_of_the_day(day=None):
+    """Ein Fact pro Kalendertag (UTC); der 29. Februar nutzt den 28. Februar."""
+    if day is None:
+        day = datetime.now(timezone.utc).date()
+    if day.month == 2 and day.day == 29:
+        day = day.replace(day=28)
+    # Ein festes Nicht-Schaltjahr hält die Zuordnung für Monat und Tag stabil.
+    calendar_day = day.replace(year=2001)
+    index = (calendar_day - date(2001, 1, 1)).days
+    return FACTS[index]
+
+
+def make_home_response():
+    """Startseite aktuellen Tages-Fact."""
+    text = escape(fact_of_the_day()["text"])
+    return {
+        "statusCode": 200,
+        "headers": {
+            "Content-Type": "text/html; charset=utf-8",
+            "Cache-Control": "no-store",
+        },
+        "body": f"""<!doctype html>
+<html lang="de">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Fun Fact of the Day</title>
+    <style>
+        body {{ margin: 0; padding: 2rem; font-family: system-ui, sans-serif;
+                background: #f5f5f5; color: #222; }}
+        main {{ max-width: 40rem; margin: 15vh auto 0; }}
+        h1 {{ font-size: 1.6rem; }}
+        p {{ font-size: 1.2rem; line-height: 1.6; }}
+    </style>
+</head>
+<body>
+    <main>
+        <h1>Fun Fact of the Day:</h1>
+        <p>{text}</p>
+    </main>
+</body>
+</html>""",
+        "isBase64Encoded": False,
+    }
 
 
 def make_response(status_code, data, extra_headers=None):
@@ -34,10 +85,7 @@ def handle_request(method, path):
         )
 
     if path == "/":
-        return make_response(200, {
-            "message": "Willkommen bei der Fun-Fact-API!",
-            "endpoints": ["GET /fact", "GET /facts"],
-        })
+        return make_home_response()
     if path == "/fact":
         return make_response(200, random.choice(FACTS))
     if path == "/facts":
