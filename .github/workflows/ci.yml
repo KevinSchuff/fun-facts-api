@@ -23,3 +23,47 @@ jobs:
 
       - name: Unittest-Tests ausführen
         run: python -m unittest discover -s tests -v
+
+  deploy:
+    name: Deployment-Probelauf
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    permissions:
+      contents: read
+      id-token: write
+
+    concurrency:
+      group: funfacts-production
+      cancel-in-progress: false
+
+    steps:
+      - name: Repository herunterladen
+        uses: actions/checkout@v6
+
+      - name: Lambda-ZIP erstellen
+        run: zip -j deployment.zip src/lambda_function.py src/facts.json
+
+      - name: Mit AWS über OIDC anmelden
+        uses: aws-actions/configure-aws-credentials@v6.3.0
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: eu-central-1
+          role-session-name: github-funfacts-deploy
+
+      - name: Bestehende Lambda-Konfiguration prüfen
+        run: >-
+          aws lambda get-function-configuration
+          --function-name funfacts-api
+          --query '[FunctionName, Runtime, Handler, PackageType, LastUpdateStatus]'
+          --output table
+
+      - name: Deployment-Berechtigung prüfen (ohne Änderung)
+        run: >-
+          aws lambda update-function-code
+          --function-name funfacts-api
+          --zip-file fileb://deployment.zip
+          --dry-run
+          --no-cli-pager
