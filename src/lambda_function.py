@@ -44,11 +44,19 @@ def make_home_response():
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Fun Fact of the Day</title>
     <style>
-        body {{ margin: 0; padding: 2rem; font-family: system-ui, sans-serif;
-                background: #f5f5f5; color: #222; }}
-        main {{ max-width: 40rem; margin: 15vh auto 0; }}
-        h1 {{ font-size: 1.6rem; }}
-        p {{ font-size: 1.2rem; line-height: 1.6; }}
+        * {{ box-sizing: border-box; }}
+        body {{ margin: 0; min-height: 100svh; padding: 1.5rem;
+                display: grid; place-items: center;
+                font-family: system-ui, sans-serif;
+                background: #f1f5f9; color: #1e293b; }}
+        main {{ width: 100%; max-width: 40rem;
+                padding: clamp(1.5rem, 5vw, 3rem);
+                background: #fff; border: 1px solid #e2e8f0;
+                border-top: 4px solid #6366f1; border-radius: 1rem;
+                box-shadow: 0 12px 36px rgb(15 23 42 / 6%); }}
+        h1 {{ margin: 0 0 1.25rem; font-size: 1.25rem; color: #4f46e5; }}
+        p {{ margin: 0; font-size: clamp(1.2rem, 3vw, 1.5rem);
+             line-height: 1.7; overflow-wrap: anywhere; }}
     </style>
 </head>
 <body>
