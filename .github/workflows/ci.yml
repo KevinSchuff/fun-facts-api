@@ -25,7 +25,7 @@ jobs:
         run: python -m unittest discover -s tests -v
 
   deploy:
-    name: Deployment-Probelauf
+    name: Lambda Deployment
     needs: test
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
@@ -60,10 +60,14 @@ jobs:
           --query '[FunctionName, Runtime, Handler, PackageType, LastUpdateStatus]'
           --output table
 
-      - name: Deployment-Berechtigung prüfen (ohne Änderung)
+      - name: Lambda-Code aktualisieren
         run: >-
           aws lambda update-function-code
           --function-name funfacts-api
           --zip-file fileb://deployment.zip
-          --dry-run
+          --query '[FunctionName, LastUpdateStatus]'
+          --output table
           --no-cli-pager
+
+      - name: Auf erfolgreiches Update warten
+        run: aws lambda wait function-updated --function-name funfacts-api
