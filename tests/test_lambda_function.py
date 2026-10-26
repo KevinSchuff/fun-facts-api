@@ -27,7 +27,7 @@ class FunFactApiTests(unittest.TestCase):
         self.assertEqual(response["headers"]["Content-Type"], "text/html; charset=utf-8")
         self.assertEqual(response["headers"]["Cache-Control"], "no-store")
         self.assertIs(response["isBase64Encoded"], False)
-        self.assertIn("<h1>Fun Fact of the Day:</h1>", response["body"])
+        self.assertIn("<h1>Fun Fact of the Day!:</h1>", response["body"])
         self.assertIn(f"<p>{FACTS[0]['text']}</p>", response["body"])
 
     def test_home_escapes_fact_text(self):
