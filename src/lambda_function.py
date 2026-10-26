@@ -61,7 +61,7 @@ def make_home_response():
 </head>
 <body>
     <main>
-        <h1>Fun Fact of the Day:</h1>
+        <h1>Fun Fact of the Day!:</h1>
         <p>{text}</p>
     </main>
 </body>
